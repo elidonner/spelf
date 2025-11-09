@@ -15,7 +15,7 @@ Spelf is a terminal-based search tool for people who can't spelf. Built with Rus
 
 2. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/spelf.git
+    git clone https://github.com/elidonner/spelf.git
     cd spelf
     ```
 
