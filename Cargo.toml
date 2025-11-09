@@ -1,0 +1,10 @@
+[package]
+name = "spelf"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tui = "0.19"
+crossterm = "0.25"
+strsim = "0.10"
+signal-hook = "0.3"
