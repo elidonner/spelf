@@ -161,11 +161,14 @@ fn handle_input(
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args: Vec<String> = std::env::args().collect();
+    let initial_query = if args.len() > 1 { args[1..].join(" ") } else { String::new() };
+
     let dict = load_dictionary();
     let running = setup_signal_handling();
     let mut terminal = setup_terminal()?;
 
-    let mut query = String::new();
+    let mut query = initial_query;
     let mut selected_index = 0;
     let mut list_state = tui::widgets::ListState::default();
 
