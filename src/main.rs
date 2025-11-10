@@ -1,3 +1,5 @@
+use argh::FromArgs;
+use arboard::Clipboard;
 use std::fs;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -19,6 +21,24 @@ use crossterm::{
 use strsim::levenshtein;
 use signal_hook::consts::SIGINT;
 use signal_hook::flag;
+
+// Define command-line arguments
+#[derive(FromArgs)]
+/** Spelf: A terminal-based fuzzy search tool.
+
+Navigation:
+Use the arrow keys or `Ctrl+n` (next) and `Ctrl+p` (previous)
+to traverse through the search results.*/
+#[argh(help_triggers("-h", "--help"))]
+struct Args {
+    /// optional initial query to begin search with
+    #[argh(positional)]
+    query: Option<String>,
+
+    /// copy the selected result to the clipboard
+    #[argh(switch, short = 'c')]
+    copy: bool,
+}
 
 fn load_dictionary() -> Vec<String> {
     fs::read_to_string("/usr/share/dict/words")
@@ -161,8 +181,8 @@ fn handle_input(
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<String> = std::env::args().collect();
-    let initial_query = if args.len() > 1 { args[1..].join(" ") } else { String::new() };
+    let args: Args = argh::from_env();
+    let initial_query = args.query.unwrap_or_default();
 
     let dict = load_dictionary();
     let running = setup_signal_handling();
@@ -189,7 +209,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         draw_ui(&mut terminal, &query, &filtered_matches, selected_index, &mut list_state)?;
         if let Some(selected_word) = handle_input(&mut query, &mut selected_index, &filtered_matches, &running)? {
             cleanup_terminal(&mut terminal)?;
-            println!("{}", selected_word);
+
+            if args.copy {
+                let mut clipboard = Clipboard::new()?;
+                clipboard.set_text(selected_word.clone())?;
+                println!("Copied to clipboard: {}", selected_word);
+            } else {
+                println!("{}", selected_word);
+            }
+
             io::stdout().flush().unwrap();
             return Ok(());
         }
